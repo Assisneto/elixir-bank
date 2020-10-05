@@ -18,6 +18,16 @@ defmodule Account do
       end
     end
 
+    def withdraw(account, value) do
+      cond do
+        balance_validation(account.balance, value) -> {:error, "insufficient funds"}
+
+        true ->
+          %Account{account | balance: account.balance - value}
+      end
+
+    end
+
     defp balance_validation(balance, value), do: balance < value
     defp find_account(accounts, account), do: Enum.find(accounts, &(&1.user.email == account.user.email))
 end
