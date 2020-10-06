@@ -17,10 +17,7 @@ defmodule Account do
       cond do
         balance_validation(from.balance, value) -> {:error, "insufficient funds"}
         true ->
-          accounts = get_accounts()
-
-          accounts = List.delete accounts, from
-          accounts = List.delete accounts, to
+          accounts = delete([from,to])
 
           from = %Account{from | balance: from.balance - value}
           to = %Account{to | balance: to.balance + value}
@@ -29,7 +26,7 @@ defmodule Account do
 
           set_accounts(accounts)
 
-          {:ok, from ,to , "Sucess"}
+          {:ok, from, to, "Sucess"}
       end
     end
 
@@ -37,8 +34,7 @@ defmodule Account do
       cond do
         balance_validation(account.balance, value) -> {:error, "insufficient funds"}
         true ->
-          accounts = get_accounts()
-          accounts = List.delete accounts, account
+          accounts = delete([account])
 
           account = %Account{account | balance: account.balance - value}
           accounts = accounts ++ account
@@ -53,7 +49,7 @@ defmodule Account do
 
     defp find_account(user), do: Enum.find(get_accounts(), &(&1.user.email == user.email))
 
-    defp get_accounts do
+    def get_accounts do
       {:ok, binary} = File.read(@accounts)
       :erlang.binary_to_term(binary)
     end
@@ -61,5 +57,9 @@ defmodule Account do
     defp set_accounts (accounts) do
       binary_accounts = :erlang.term_to_binary(accounts)
       File.write(@accounts,  binary_accounts)
+    end
+
+    defp delete(accounts) do
+      Enum.reduce(accounts, get_accounts(), fn c, acc -> List.delete(acc,c) end)
     end
 end
