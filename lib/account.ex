@@ -3,7 +3,7 @@ defmodule Account do
     @accounts "accounts.txt"
     def registration(user) do
 
-      case find_account(user) do
+      case find_account(user.email) do
         nil ->
          [%__MODULE__{user: user}] ++ get_accounts()
          |> set_accounts
@@ -13,7 +13,8 @@ defmodule Account do
 
     end
     def transfer(from, to, value) do
-     from = find_account(from.user)
+     from = find_account(from)
+     to = find_account(to)
       cond do
         balance_validation(from.balance, value) -> {:error, "insufficient funds"}
         true ->
@@ -31,13 +32,14 @@ defmodule Account do
     end
 
     def withdraw(account, value) do
+      account = find_account(account)
       cond do
         balance_validation(account.balance, value) -> {:error, "insufficient funds"}
         true ->
           accounts = delete([account])
 
           account = %Account{account | balance: account.balance - value}
-          accounts = accounts ++ account
+          accounts = accounts ++ [account]
 
           set_accounts(accounts)
           {:ok, account, "Sucess"}
@@ -47,7 +49,7 @@ defmodule Account do
 
     defp balance_validation(balance, value), do: balance < value
 
-    defp find_account(user), do: Enum.find(get_accounts(), &(&1.user.email == user.email))
+    def find_account(email), do: Enum.find(get_accounts(), &(&1.user.email == email))
 
     def get_accounts do
       {:ok, binary} = File.read(@accounts)
